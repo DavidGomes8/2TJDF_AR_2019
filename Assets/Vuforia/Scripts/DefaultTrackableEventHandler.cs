@@ -7,8 +7,17 @@ Confidential and Proprietary - Protected under copyright and other laws.
 ==============================================================================*/
 
 using UnityEngine;
+using UnityEngine.Events;
 using Vuforia;
 
+[System.Serializable]
+public class TrackEvents
+{
+    public UnityEvent onInitialized;
+    public UnityEvent onAppear;
+    public UnityEvent isAppearing;
+    public UnityEvent onDisappear;
+}
 /// <summary>
 /// A custom handler that implements the ITrackableEventHandler interface.
 /// 
@@ -17,9 +26,17 @@ using Vuforia;
 /// </summary>
 public class DefaultTrackableEventHandler : MonoBehaviour, ITrackableEventHandler
 {
+    #region PUBLIC_EVENTS
+
+    public TrackEvents trackEvents;
+
+    #endregion PUBLIC_EVENTS
+
     #region PROTECTED_MEMBER_VARIABLES
 
     protected TrackableBehaviour mTrackableBehaviour;
+
+    bool isAppearing = false;
 
     #endregion // PROTECTED_MEMBER_VARIABLES
 
@@ -30,6 +47,19 @@ public class DefaultTrackableEventHandler : MonoBehaviour, ITrackableEventHandle
         mTrackableBehaviour = GetComponent<TrackableBehaviour>();
         if (mTrackableBehaviour)
             mTrackableBehaviour.RegisterTrackableEventHandler(this);
+
+        if (isAppearing && trackEvents.onInitialized!=null)
+        {
+            trackEvents.onInitialized.Invoke();
+        }
+    }
+
+    void Update()
+    {
+        if (trackEvents.isAppearing!=null)
+        {
+            trackEvents.isAppearing.Invoke();
+        }
     }
 
     protected virtual void OnDestroy()
@@ -93,6 +123,13 @@ public class DefaultTrackableEventHandler : MonoBehaviour, ITrackableEventHandle
         // Enable canvas':
         foreach (var component in canvasComponents)
             component.enabled = true;
+
+        if (trackEvents.onAppear != null)
+        {
+            trackEvents.onAppear.Invoke();
+        }
+
+        isAppearing = true;
     }
 
 
@@ -113,6 +150,13 @@ public class DefaultTrackableEventHandler : MonoBehaviour, ITrackableEventHandle
         // Disable canvas':
         foreach (var component in canvasComponents)
             component.enabled = false;
+
+        if (trackEvents.onDisappear != null)
+        {
+            trackEvents.onDisappear.Invoke();
+        }
+
+        isAppearing = false;
     }
 
     #endregion // PROTECTED_METHODS
